@@ -1,0 +1,41 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+#menu {
+    background-color: #333;
+    color: #fff;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+#logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+}
+.banner {
+    text-align: center;
+    padding: 50px;
+    background-color: #f4f4f4;
+}
+.profile-img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.container {
+    padding: 20px;
+}
+.box {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+}
